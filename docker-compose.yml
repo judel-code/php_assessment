@@ -1,6 +1,8 @@
-version: '3.8'
+version: "3.9"
+
 services:
   php:
+    container_name: frontend_container
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,15 +13,11 @@ services:
     depends_on:
       - mongodb
     environment:
-      - MONGO_HOST=mongodb
+      - MONGO_HOST=mongodb_container
       - MONGO_PORT=27017
-  mongodb:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
+
   microservice:
+    container_name: microservice_container
     build:
       context: ./microservice
       dockerfile: Dockerfile
@@ -28,7 +26,30 @@ services:
     depends_on:
       - mongodb
     environment:
-      - MONGO_HOST=mongodb
+      - MONGO_HOST=mongodb_container
       - MONGO_PORT=27017
+
+  mongodb:
+    container_name: mongodb_container
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    container_name: database_gui
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb_container
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: password
+    depends_on:
+      - mongodb
+
 volumes:
   mongo_data:
